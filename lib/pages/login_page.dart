@@ -75,6 +75,14 @@ class _LoginPageState extends State<LoginPage> {
   
 
   @override
+
+  void dispose() {
+    emailController.dispose();
+    senhaController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
