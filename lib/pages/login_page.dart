@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_login/services/api_service.dart';
 import '../dados_mock.dart';
 import 'home_page.dart';
-import 'cadastro_page.dart';
+import 'cadastro_page.dart'; 
 
 class LoginPage extends StatefulWidget{
   const LoginPage({super.key});
@@ -16,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController senhaController = TextEditingController();
 
   bool esconderSenha = true;
+  bool carregando = false;
   
   void mostrarMensagem(String mensagem){
     ScaffoldMessenger.of(context).showSnackBar(
@@ -25,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
   
-  void entrar(){
+  Future<void> entrar() async{
     String email = emailController.text.trim();
     String senha = senhaController.text;
 
@@ -36,52 +38,61 @@ class _LoginPageState extends State<LoginPage> {
 
     Map<String, String>? usuarioEncontrado;
 
-    for(var usuario in usuarios){
-      if (
-        usuario['email'] == email && 
-        usuario['senha'] == senha)
-        {
-          usuarioEncontrado = usuario;
-          break;
-      }
-    }
-    if (usuarioEncontrado == null) {
-      mostrarMensagem('E-mail ou senha incorretos');
-      return;
-    }
+    // for(var usuario in usuarios){
+    //   if (
+    //     usuario['email'] == email && 
+    //     usuario['senha'] == senha){
+    //       break;
+    //   }
+    // }
 
-    String nome = usuarioEncontrado['nome'] ?? 'Usuário';
+    final resultado = await ApiService.login(
+      email: email,
+      senha: senha
+    );
 
+    if(resultado['sucesso'] == true){
+      final dados = resultado['dados'];
+      final usuario = dados[usuarios];
+
+      String nome = usuario['nome']?? "Usuario";
+      String emailUsuario = usuario['email'] ?? email;
 
     Navigator.pushReplacement(
-      context, MaterialPageRoute(
-      builder: (context) => HomePage(
-        nomeUsuario: nome,
-        emailUsuario: email,
-      )
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(
+          nomeUsuario: nome,
+          emailUsuario: email,
+        ),
       ),
     );
+    }
+
+    // if(usuarioEncontrado == null){
+    //   mostrarMensagem('E-mail ou senha incorretos');
+    //   return;
+    // } 
+
+    
   }
 
   void abrirCadastro(){
     Navigator.push(
-      context, MaterialPageRoute(
+      context,
+      MaterialPageRoute(
         builder: (context) => const CadastroPage(),
-      )
+      ),
     );
   }
 
-  
-  
-
   @override
-
-  void dispose() {
+  void dispose(){
     emailController.dispose();
     senhaController.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
