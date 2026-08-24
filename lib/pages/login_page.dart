@@ -1,88 +1,147 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_login/services/api_service.dart';
-import '../dados_mock.dart';
 import 'home_page.dart';
-import 'cadastro_page.dart'; 
+import '../services/api_service.dart';
+import '../dados_mock.dart';
+import 'cadastro_page.dart';
 
 class LoginPage extends StatefulWidget{
-  const LoginPage({super.key});
+    const LoginPage({super.key});
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
+    @override
+    State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage>{
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
 
   bool esconderSenha = true;
   bool carregando = false;
-  
+
+
   void mostrarMensagem(String mensagem){
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(mensagem),
-      )
+        content: Text(mensagem)
+      ),
     );
   }
-  
+
   Future<void> entrar() async{
     String email = emailController.text.trim();
     String senha = senhaController.text;
 
+
+
     if(email.isEmpty || senha.isEmpty){
-      mostrarMensagem('Preencha todos os campos');
+      mostrarMensagem(
+        'Preencha o e-mail e a senha.',
+      );
       return;
     }
 
-    Map<String, String>? usuarioEncontrado;
+    // Map<String, String>? usuarioEncotrado;
 
     // for(var usuario in usuarios){
-    //   if (
+    //    if (
     //     usuario['email'] == email && 
-    //     usuario['senha'] == senha){
-    //       break;
-    //   }
+    //     usuario['senha'] == senha
+    //    ){       
+    //     usuarioEncotrado = usuario;        
+    //     break;
+    //    }
     // }
+    
+    
+    // setState(() {
+    //   carregando = true;
+    // });
+
+    // final resultado = await ApiService.login(
+    //   email: email, 
+    //   senha: senha
+    // );
+
+    // setState(() {
+    //   carregando = false;
+    // });
+
+    // if(resultado['sucesso'] == true){
+
+    //     final usuario = resultado['dados'];
+
+    //     String nome = usuario['nome'] ?? 'Usuario';
+    //     String emailUsuario = usuario['email'] ?? email;
+              
+
+    //     Navigator.pushReplacement(
+    //       context, 
+    //       MaterialPageRoute(
+    //         builder: (context) => HomePage(
+    //           nomeUsuario: nome,
+    //           emailUsuario: email,
+    //         ),
+    //       ),
+    //     );
+    // }
+    setState(() {
+      carregando = true;
+    });
 
     final resultado = await ApiService.login(
       email: email,
-      senha: senha
+      senha: senha,
     );
 
-    if(resultado['sucesso'] == true){
+    setState(() {
+      carregando = false;
+    });
+
+    if (resultado['sucesso'] == true) {
       final dados = resultado['dados'];
-      final usuario = dados[usuarios];
+      final usuario = dados['usuario'];
 
-      String nome = usuario['nome']?? "Usuario";
-      String emailUsuario = usuario['email'] ?? email;
+      if (usuario == null || usuario is! Map<String, dynamic>) {
+        mostrarMensagem('Dados do usuário inválidos.');
+        return;
+      }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(
-          nomeUsuario: nome,
-          emailUsuario: email,
+      final String nome = usuario['nome'] ?? 'Usuario';
+      final String emailUsuario = usuario['email'] ?? email;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(
+            nomeUsuario: nome,
+            emailUsuario: emailUsuario,
+          ),
         ),
-      ),
-    );
+      );
+
+      return;
     }
 
-    // if(usuarioEncontrado == null){
-    //   mostrarMensagem('E-mail ou senha incorretos');
+    mostrarMensagem(
+      resultado['mensagem'] ?? 'E-mail ou senha incorretos.',
+    );
+
+    // if(resultado['sucesso'] == false){
+    //   mostrarMensagem(
+    //     'E-mail ou senha incorretos.'
+    //   );
     //   return;
-    // } 
+    // }
 
     
+
   }
 
   void abrirCadastro(){
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CadastroPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const CadastroPage()),
     );
   }
 
@@ -90,11 +149,12 @@ class _LoginPageState extends State<LoginPage> {
   void dispose(){
     emailController.dispose();
     senhaController.dispose();
+
     super.dispose();
   }
-  
+   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
@@ -105,14 +165,15 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 40,),
 
+            
             const Icon(
               Icons.account_circle,
               size: 100,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 20,),
 
             const Text(
               'Bem-vindo',
@@ -123,69 +184,69 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 5,),
 
             const Text(
-              'Entre com sua conta',
-              textAlign: TextAlign.center,
+              'Entre com a sua conta para acessar o sistema.',
+              textAlign: TextAlign.center,              
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 30,),
 
             TextField(
               controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration:  InputDecoration(
+              keyboardType: TextInputType.emailAddress,              
+              decoration: const InputDecoration(
                 labelText: 'E-mail',
                 hintText: 'Digite seu e-mail',
                 prefixIcon: Icon(Icons.email),
-                border: OutlineInputBorder()
+                border: OutlineInputBorder(),
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 15,),
 
             TextField(
-              controller: senhaController,
-              obscureText: esconderSenha,
+              controller: senhaController,   
+              obscureText: esconderSenha,                       
               decoration: InputDecoration(
                 labelText: 'Senha',
                 hintText: 'Digite sua senha',
                 prefixIcon: const Icon(Icons.lock),
                 border: const OutlineInputBorder(),
-                
+
                 suffixIcon: IconButton(
                   onPressed: (){
                     setState(() {
                       esconderSenha = !esconderSenha;
                     });
-                  },
+                  }, 
                   icon: Icon(
                     esconderSenha ? Icons.visibility : Icons.visibility_off
-                  ), 
+                  )
                 ),
-              ),
+              ),             
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 25,),
 
             ElevatedButton.icon(
-              onPressed: entrar,
-              icon: Icon(Icons.login),
-              label: const Text('Entrar'),
+              onPressed: entrar, 
+              icon: carregando ? const CircularProgressIndicator() :const Icon(Icons.login),
+              label: const Text('Entrar')
             ),
 
-            const SizedBox(height: 10),
+             const SizedBox(height: 10),
 
-            OutlinedButton.icon(
-              onPressed: abrirCadastro,
-              icon: Icon(Icons.person_add),
-              label: const Text('Cadastrar'),
-            ),
+             OutlinedButton.icon(
+              onPressed: abrirCadastro, 
+              icon: Icon(Icons.person_add) ,
+              label: const Text('Criar usuário'),
+            )
+
           ],
-          
         ),
-        )
-      );
+      )
+    );
   }
 }
